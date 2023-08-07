@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_RESULT_INDEX = "result_index";
     private EditText etTotalAmount, etNumPeople, etIndividualValues, etPercentageOrRatio;
     private RadioGroup radioGroup;
-    private RadioButton rbEqual, rbCustom;
+    private RadioButton rbEqual, rbCustom, rbPercentage, rbRatio, rbIndividual;
     private Button btnCalculate, btnStore, btnShare, btnShowResults;
     private TextView tvResult, tvIndividualValues, tvPercentageOrRatio;
     private RadioGroup customOptionsLayout;
@@ -80,9 +80,9 @@ public class MainActivity extends AppCompatActivity {
         //RadioButton rbEqual = findViewById(R.id.rbEqual);
         //RadioButton rbCustom = findViewById(R.id.rbCustom);
         customOptionsLayout = findViewById(R.id.customOptionsLayout);
-        RadioButton rbIndividual = findViewById(R.id.rbIndividual);
-        RadioButton rbPercentage = findViewById(R.id.rbPercentage);
-        RadioButton rbRatio = findViewById(R.id.rbRatio);
+        rbIndividual = findViewById(R.id.rbIndividual);
+        rbPercentage = findViewById(R.id.rbPercentage);
+        rbRatio = findViewById(R.id.rbRatio);
         //etTotalBillAmount = findViewById(R.id.etTotalBillAmount);
         etPercentageOrRatio = findViewById(R.id.etPercentageOrRatio);
         tvIndividualValues = findViewById(R.id.tvIndividualValues);
@@ -378,9 +378,14 @@ public class MainActivity extends AppCompatActivity {
 
                         // Calculate and show the breakdown for each person
                         for (int i = 0; i < numPeople; i++) {
-                            double individualAmount = (Double.parseDouble(individualPercentagesArray[i]) / 100.0) * totalBillAmount;
-                            breakdown[i] = (Double.parseDouble(individualPercentagesArray[i]) / 100.0) * totalBillAmount;
-                            resultMessage += "Person " + (i + 1) + " should pay: RM " + String.format(Locale.getDefault(), "%.2f", individualAmount) + "\n";
+                            //double individualAmount = (Double.parseDouble(individualPercentagesArray[i]) / 100.0) * totalBillAmount;
+                            double individualPercentage = Double.parseDouble(individualPercentagesArray[i]);
+                            double individualAmount = (individualPercentage / 100.0) * totalBillAmount;
+                            //breakdown[i] = (Double.parseDouble(individualPercentagesArray[i]) / 100.0) * totalBillAmount;
+                            //resultMessage += "Person " + (i + 1) + " should pay: RM " + String.format(Locale.getDefault(), "%.2f", individualAmount) + "\n";
+                            breakdown[i] = (individualPercentage / 100.0) * totalBillAmount;
+                            resultMessage += "Person " + (i + 1) + " (" + individualPercentage + "%) should pay: RM " +
+                                    String.format(Locale.getDefault(), "%.2f", individualAmount) + "\n";
                         }
                         tvResult.setText(resultMessage);
                         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -429,9 +434,15 @@ public class MainActivity extends AppCompatActivity {
                             + "Total Number of People: " + numPeople + "\n\n";
 
                     for (int i = 0; i < numPeople; i++) {
-                        double individualAmount = (Integer.parseInt(individualRatiosArray[i]) * totalBillAmount) / sumRatios;
-                        breakdown[i] = (Integer.parseInt(individualRatiosArray[i]) * totalBillAmount) / sumRatios;
-                        resultMessage += "Person " + (i + 1) + " should pay: RM " + String.format(Locale.getDefault(), "%.2f", individualAmount) + "\n";
+                        //double individualAmount = (Integer.parseInt(individualRatiosArray[i]) * totalBillAmount) / sumRatios;
+                        //breakdown[i] = (Integer.parseInt(individualRatiosArray[i]) * totalBillAmount) / sumRatios;
+                        //resultMessage += "Person " + (i + 1) + " should pay: RM " + String.format(Locale.getDefault(),
+                        // "%.2f", individualAmount) + "\n";
+                        double individualRatio = Integer.parseInt(individualRatiosArray[i]);
+                        double individualAmount = (individualRatio * totalBillAmount) / sumRatios;
+                        breakdown[i] = (individualRatio * totalBillAmount) / sumRatios;
+                        resultMessage += "Person " + (i + 1) + " (" + individualRatio + ") should pay: RM " +
+                                String.format(Locale.getDefault(), "%.2f", individualAmount) + "\n";
                     }
                     tvResult.setText(resultMessage);
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -534,8 +545,17 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     // Append the breakdown for each person
                     for (int j = 0; j < storedBreakdown.length; j++) {
-                        resultMessage.append("Person ").append(j + 1).append(" should pay: RM ").append(String.format(Locale.getDefault(),
-                                "%.2f", storedBreakdown[j])).append("\n");
+                        if (rbPercentage.isChecked()) {
+                            double individualPercentage = (storedBreakdown[j] / storedTotalAmount) * 100.0;
+                            resultMessage.append("Person ").append(j + 1).append(" (").append(String.format(Locale.getDefault(), "%.2f", individualPercentage))
+                                    .append("%) should pay: RM ").append(String.format(Locale.getDefault(), "%.2f", storedBreakdown[j])).append("\n");
+                        } else if (rbRatio.isChecked()) {
+                            double individualRatio = (storedBreakdown[j] / storedTotalAmount);
+                            resultMessage.append("Person ").append(j + 1).append(" (1:").append(String.format(Locale.getDefault(), "%.2f", individualRatio))
+                                    .append(") should pay: RM ").append(String.format(Locale.getDefault(), "%.2f", storedBreakdown[j])).append("\n");
+                        } else {
+                            resultMessage.append("Person ").append(j + 1).append(" should pay: RM ").append(String.format(Locale.getDefault(), "%.2f", storedBreakdown[j])).append("\n");
+                        }
                     }
                 }
 
@@ -589,8 +609,19 @@ public class MainActivity extends AppCompatActivity {
 
         // Append the breakdown for each person
         for (int j = 0; j < storedBreakdown.length; j++) {
-            resultMessage.append("Person ").append(j + 1).append(" should pay: RM ").append(String.format(Locale.getDefault(),
-                    "%.2f", storedBreakdown[j])).append("\n");
+            //resultMessage.append("Person ").append(j + 1).append(" should pay: RM ").append(String.format(Locale.getDefault(),
+             //       "%.2f", storedBreakdown[j])).append("\n");
+            if (rbPercentage.isChecked()) {
+                double individualPercentage = (storedBreakdown[j] / storedTotalAmount) * 100.0;
+                resultMessage.append("Person ").append(j + 1).append(" (").append(String.format(Locale.getDefault(), "%.2f", individualPercentage))
+                        .append("%) should pay: RM ").append(String.format(Locale.getDefault(), "%.2f", storedBreakdown[j])).append("\n");
+            } else if (rbRatio.isChecked()) {
+                double individualRatio = (storedBreakdown[j] / storedTotalAmount);
+                resultMessage.append("Person ").append(j + 1).append(" (1:").append(String.format(Locale.getDefault(), "%.2f", individualRatio))
+                        .append(") should pay: RM ").append(String.format(Locale.getDefault(), "%.2f", storedBreakdown[j])).append("\n");
+            } else {
+                resultMessage.append("Person ").append(j + 1).append(" should pay: RM ").append(String.format(Locale.getDefault(), "%.2f", storedBreakdown[j])).append("\n");
+            }
         }
 
         // Copy the result message to the clipboard
